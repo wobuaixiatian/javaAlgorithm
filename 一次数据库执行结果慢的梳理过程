@@ -1,0 +1,45 @@
+背景：项目执行一个删除操作的时候发现耗时较长，但是不是必现。之前一直忙于赶进度，对这个问题没有仔细查看。项目进入维护阶段，决定花些时间看看到底是怎么回事
+
+通过查看后台的代码，怀疑两个地方，一个是项目中一个用于拼接字符串的工具类，一个是数据库中调用的SP，后来通过代码测试排除了第一中可能。
+在测试服务器上面进行复现，发现出现的概率还是比较高的。确实是一个SP执行过慢
+1，show processlist;获取当前执行的线程执行情况
+ 1379011 | root | localhost:35949      | XXXX          | Query   |     1 | Sending data | call `SP_XX`(id,name) |
+发现有一个SP一直处于Sending data状态，说明这个表正在处理一些查询数据，而且time一直都是在0-2之前循环，说明一直在查询，不是阻塞（time会累加）
+既然确定了是这个sp的问题，看一下是不是出了什么错误
+2，show engine innodb status，查看引擎的运行时信息
+---TRANSACTION 714799, ACTIVE 1382 sec unlock_row
+mysql tables in use 1, locked 1
+6905 lock struct(s), heap size 942288, 2535 row lock(s), undo log entries 1051
+MySQL thread id 1379011, OS thread handle 139649494284032, query id 16945088 localhost 127.0.0.1 root Sending data
+call `SP_XX`(id,name)
+
+发现事物这部分也是这里。
+现在基本确定是这个SP的问题。但是SP整体看起来没有什么语法或者明显的错误。
+3，show open tables;发现如下信息
+| Database           | Table                                                | In_use | Name_locked |
+| XXX          | a                                 |      1 |           0 |
+
+这张表在这时候被占用了，In_use列表示有多少线程正在使用某张表，Name_locked表示表名是否被锁，
+而有问题的SP中确实也发现有调用这个table的操作，那么会不会就是这个table的问题呢？
+4，SELECT * FROM INFORMATION_SCHEMA.INNODB_TRX\G；INNODB_TRX 表包含信息关于每个事务(不包含只读事务) 当前在InnoDB内执行的,
+mysql> SELECT * FROM INFORMATION_SCHEMA.INNODB_TRX\G
+*************************** 1. row ***************************
+                    trx_id: 714799
+                 trx_state: RUNNING
+               trx_started: 201x-xx-xx 19:19:08
+     trx_requested_lock_id: NULL
+          trx_wait_started: NULL
+                trx_weight: 8102
+       trx_mysql_thread_id: 1379011
+                 trx_query: call `SP_XX`(id,name)
+       trx_operation_state: fetching rows
+         trx_tables_in_use: 1
+         trx_tables_locked: 5
+
+
+发现确实有一张表被占用，那么基本就是这张表了。
+到这里我们知道了具体是那个SP中的调用的哪个table的问题，问题就明朗了。
+通过查询发现是有问题的table本身没有添加索引导致，每次查询的时候都是全表扫描，所以特别慢。
+
+后来在这张表中添加了一个外键，没有再出现执行很长的问题
+记录下来作为后面处理类似问题的一个思路
