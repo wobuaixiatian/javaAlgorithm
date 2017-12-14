@@ -1,0 +1,14 @@
+sp中添加了回滚代码
+DECLARE EXIT HANDLER FOR SQLEXCEPTION
+BEGIN
+    ROLLBACK;
+END;
+这样报错数据会回滚，但是错误信息却不能返回，导致定位困难。
+
+mysql提供了一种方式获取返回的错误信息，添加如下代码即可
+	 GET DIAGNOSTICS CONDITION 1 
+         @p1 = RETURNED_SQLSTATE, @p2 = MESSAGE_TEXT, @p3 = MYSQL_ERRNO, @p4 = CONSTRAINT_CATALOG, @p5 = CONSTRAINT_SCHEMA
+		 , @p6 = CONSTRAINT_NAME, @p7 = CATALOG_NAME, @p8 = SCHEMA_NAME, @p9 = TABLE_NAME, @p10 = COLUMN_NAME, @p11 = CURSOR_NAME;
+        
+    insert into ccm_log (create_time,log_info1,log_info2,log_info3,log_info4,log_info5,log_info6,log_info7,log_info8,log_info9,ccm_logcol) 
+			values(now(),@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@p9,@p10);
