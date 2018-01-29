@@ -8,3 +8,85 @@
 
 其中提到的资料，文件等。都可以在网上找到
 搜索spring+activiti即可
+定义文件的模板
+<definitions id="definitions"
+  targetNamespace="http://activiti.org/bpmn20"
+  xmlns:activiti="http://activiti.org/bpmn"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
+
+    <process id="apkinfopd" name="Generate new ApkInfo reminder process">
+
+      <startEvent id="create" />
+
+      <sequenceFlow id='flow1' sourceRef='create' targetRef='modifyApkInfoTask' />
+
+      <userTask id="modifyApkInfoTask" name="modify ApkInfo" >
+        <documentation>
+          create or update the ApkInfo by user
+        </documentation>
+      </userTask>
+
+      <sequenceFlow id='flow2' sourceRef='modifyApkInfoTask' targetRef='approveApkInfoTask' />
+
+      <userTask id="approveApkInfoTask" name="approve the ApkInfo" >
+        <documentation>
+          approve the ApkInfo by the Approver .
+        </documentation>
+      </userTask>
+      
+      <sequenceFlow id='flow3' sourceRef='approveApkInfoTask' targetRef='reviewDecision' />
+      
+      <exclusiveGateway  id='reviewDecision' name='Review Decision' /> 
+
+      <sequenceFlow id='flow4' sourceRef='reviewDecision' targetRef='theEnd' >
+          <conditionExpression xsi:type='tFormalExpression'>
+                            <![CDATA[${isSubmitted == true && isApproved == true}]]></conditionExpression>
+      </sequenceFlow>
+      
+      <sequenceFlow id='flow5' sourceRef='reviewDecision' targetRef='modifyApkInfoTask' />
+
+      <endEvent id="theEnd" />
+
+    </process>
+
+</definitions>
+
+spring.xml:
+<bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+        <property name="dataSource" ref="dataSource" />
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="databaseSchemaUpdate" value="true" />
+        <property name="jobExecutorActivate" value="false" />
+        <property name="eventListeners">
+            <list>
+               <bean class="*.*.apkinfo.bpm.MyEventListener" />
+            </list>
+        </property>
+        <!-- JPA -->
+        <property name="jpaEntityManagerFactory" ref="entityManagerFactory" />
+        <property name="jpaHandleTransaction" value="false" />
+        <property name="jpaCloseEntityManager" value="false" />
+        <!-- 自动部署 -->
+        <property name="deploymentResources">
+            <list>
+                <value>/*/*/*/prop/*.bpmn20.xml</value>
+            </list>
+        </property>
+    <!--    配置是否暴露给给bpmn的表达式使用 -->
+        <property name="beans">
+            <map>
+            </map>
+        </property>
+    </bean>
+    
+    <bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+        <property name="processEngineConfiguration" ref="processEngineConfiguration" />
+    </bean>
+    
+    <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService" />
+    <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService" />
+    <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService" />
+    <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService" />
+    <bean id="managementService" factory-bean="processEngine" factory-method="getManagementService" />
+    <bean id="IdentityService" factory-bean="processEngine" factory-method="getIdentityService" />
