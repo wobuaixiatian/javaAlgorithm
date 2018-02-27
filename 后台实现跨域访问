@@ -1,0 +1,30 @@
+CORS
+这里起了两个服务，一个端口是8080，一个是8089.算是不同源
+后台配置---8089
+	@CrossOrigin(origins = "http://localhost:8080")
+	@RequestMapping(value = "/get", method = RequestMethod.POST)
+	public HashMap<String, Object> get(@RequestParam String name) {
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		map.put("title", "hello world");
+		map.put("name", name);
+		return map;
+	}
+  
+ 前台配置---8080
+ 
+ 		$.ajax({
+			url : "http://localhost:8089/api/get",
+			type : "POST",
+			dataType : "json",
+			data : {
+				name : "test1"
+			},
+			success : function(data) {
+				console.log(data);
+				alert(data);
+			}
+		});
+    
+   这里最重要的是@CrossOrigin(origins = "http://localhost:8080")
+   这个是springmvc中的新功能
+   参考：http://blog.csdn.net/isea533/article/details/50449907
