@@ -1,0 +1,31 @@
+CORS
+启动两个端口，一个是8080，一个是8089
+前台---8080
+	$.ajax({
+		type:"get",
+		url : "http://127.0.0.1:8089/rest/find/users2",//也可以写出这样url : "http://127.0.0.1:8089/rest/find/users2?callback=?"
+		dataType : "jsonp",
+		jsonp : "callback",
+		jsonpCallback : "getChange",//自定义的回调函数名称，后台返回的时候要保持一致
+		success : function(data) {
+			alert(data);
+		},
+		error : function(error) {
+			console.log(error);
+		}
+	});
+  	function getChange(param) {
+		console.log(param);
+	}
+  后台---8089
+  @RestController
+@RequestMapping(value = "/rest", method = RequestMethod.POST)
+  .....
+         @RequestMapping(value = "/find/users2", method = RequestMethod.GET)
+       public String findAll2() {
+           return "getChange({name:'tom',age:'12'})";//这里是关键
+       }
+       ....
+       
+  jsonpCallback:getChange//返回的信息格式必须是"getChange({name:'tom',age:'12'})"。
+  名称一定要对应
