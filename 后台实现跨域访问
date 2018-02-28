@@ -9,7 +9,15 @@ CORS
 		map.put("name", name);
 		return map;
 	}
+  如果浏览器不支持cors，可以使用
   
+   @RequestMapping(value = "/find/users", method = RequestMethod.GET)
+    public List<RoncooUser> findAll(HttpServletResponse response) {
+	List<RoncooUser> users = new ArrayList<RoncooUser>();
+	users = roncooUserCache.findAll();
+	response.setHeader("Access-Control-Allow-Origin", "*");
+	return users;
+    }
  前台配置---8080
  
  		$.ajax({
