@@ -1,0 +1,98 @@
+搭建中的问题：
+1，主要是pom文件中配置的各项dependency，不兼容（猜测）导致jar包不能正确导入。
+选用比较成熟的版本
+
+<parent>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-parent</artifactId>
+	<version>1.3.5.RELEASE</version><!-- 这里的版本不能太高，会有jar不兼容的情况，这里很关键 -->
+	<relativePath />
+</parent>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>Camden.RELEASE</version><!-- 版本不要求最新，稳定即可 -->
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+
+
+
+
+
+从源代码中得知 @SpringBootApplication 被 
+@Configuration、(@Configuration 是一个类级注释，指示对象是一个bean定义的源)
+@EnableAutoConfiguration、(启用 Spring 应用程序上下文的自动配置，试图猜测和配置您可能需要的bean。自动配置类通常采用基于你的 classpath 和已经定义的 beans 对象进行应用。)
+@ComponentScan (为 @Configuration注解的类配置组件扫描指令)
+注解所修饰，换言之 Springboot 提供了统一的注解来替代以上三个注解，简化程序的配置。下面解释一下各注解的功能。
+
+来自 <http://blog.csdn.net/claram/article/details/75125749> 
+
+
+
+当我们在Controller上标注了@RestController，这样相当于Controller的所有方法都标注@ResponseBody
+@ResponseBody
+作用： 
+      该注解用于将Controller的方法返回的对象，通过适当的HttpMessageConverter转换为指定格式后，写入到Response对象的body数据区。
+使用时机：返回的数据不是html标签的页面，而是其他某种格式的数据时（如json、xml等）使用；
+
+
+来自 <http://blog.csdn.net/canot/article/details/51454804> 
+
+
+入口类加上注解@EnableEurekaClient，开启eureka客户端，可以注册服务及发现调用服务，与注册中心的@EnableEurekaServer刚好相反。
+
+@EnableDiscoveryClient也能起到该作用，@EnableDiscoveryClient与@EnableEurekaClient的关系如下：
+
+SpringCloud中的“Discovery Service”有多种实现，比如：eureka, consul, zookeeper，可见eruka只是其中的一种。
+
+@EnableDiscoveryClient注解是基于spring-cloud-commons依赖，并且在classpath中实现（根据导入的jar包有关）；
+@EnableEurekaClient注解是基于spring-cloud-netflix依赖，只能为eureka作用；
+
+如果你的classpath中添加了eureka，则它们的作用是一样的。
+
+
+在入口类处加上@EnableEurekaServer注解，用于开启服务注册中心
+
+
+ 配置文件为yml结尾的时候，要注意
+  server:
+  port: 8989
+  上面：后面的" "空格如果没有的话会报错，~~
+
+/info这个url比较特殊，如果直接使用可能会有问题（暂时不知道为什么）
+
+
+怎么读取配置文件，以及配置文件怎么生效
+
+
+
+
+
+application.yml
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+spring:
+  application:
+    name: eureka-service
+server:
+  port: 8761
+
+
+
+
+
+
+
