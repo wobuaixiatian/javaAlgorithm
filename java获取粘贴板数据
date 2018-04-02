@@ -1,0 +1,90 @@
+最近工作上面需要复制链接然后打开网页，每次都要打开浏览器。觉得麻烦，然后写了这个小工具。
+package Exercise1.openBrower;
+
+import java.awt.Desktop;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+/**
+ * Hello world!
+ *
+ */
+public class App {
+    public static void main( String[] args ) {
+//        System.out.println( getClipboardString() );
+        String urlText = getClipboardString();
+        if (urlText != null && !"".equals(urlText.trim()) ) {
+                urlText = urlText.trim();
+                if (urlText.startsWith("DTS")) {
+                    String url = "http://dts.huawei.com/net/dts/dts/DTSWorkFlowPage.aspx?No=" + urlText;
+                    openByIEBrower(url);
+                } else if (urlText.contains("http://rnd-hap.huawei.com")) {
+                    openByDefaultBrower(urlText);
+                } else {
+                    
+                }
+        } else {
+            openByDefaultBrower("https://www.google.com/webhp?q=java");
+        }
+    }
+    
+    /**
+     * 从剪贴板中获取文本（粘贴）
+     */
+    public static String getClipboardString() {
+        // 获取系统剪贴板
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+        // 获取剪贴板中的内容
+        Transferable trans = clipboard.getContents(null);
+
+        if (trans != null) {
+            // 判断剪贴板中的内容是否支持文本
+            if (trans.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                try {
+                    // 获取剪贴板中的文本内容
+                    String text = (String) trans.getTransferData(DataFlavor.stringFlavor);
+                    return text;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return null;
+    }
+    
+    /**
+     * 用默认浏览器打开
+     */
+    public static void openByDefaultBrower(String url) {
+        //启用系统默认浏览器来打开网址。  
+        try {  
+            URI uri = new URI(url);  
+            Desktop.getDesktop().browse(uri);  
+        } catch (URISyntaxException e) {  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    }
+    
+    /**
+     * 用IE打开
+     */
+    public static void openByIEBrower(String url) {
+        //启用cmd运行IE的方式来打开网址。  
+        String str = "cmd /c start iexplore " + url;
+        try {
+            Runtime.getRuntime().exec(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+    }
+}
+项目判断可以使用默认和IE打开
