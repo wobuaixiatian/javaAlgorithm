@@ -1,7 +1,11 @@
 public static boolean sendPicEmail(String recipientTO, String subTitle, String htmlContext, String priority, String picPath) {
         // Recipient's email ID needs to be mentioned.
         String to = "Recipient@mail.com,Recipient1@mail.com";//多个用户用","隔开
-
+        
+        String cc = "meichaohui@huawei.com";
+        
+        String bcc = "yangqian25@huawei.com";
+        
         // Sender's email ID needs to be mentioned
         String from = "Sender@mail.com";//发件人邮箱
         final String username = "xxx";//用户名
@@ -29,9 +33,17 @@ public static boolean sendPicEmail(String recipientTO, String subTitle, String h
            // Set From: header field of the header.
            message.setFrom(new InternetAddress(from));
 
-           // Set To: header field of the header.
+           // 主送
            message.setRecipients(Message.RecipientType.TO,
               InternetAddress.parse(to));
+           
+           //抄送
+           message.setRecipients(Message.RecipientType.CC,
+                   InternetAddress.parse(cc));
+           
+           //密送
+           message.setRecipients(Message.RecipientType.BCC,
+                   InternetAddress.parse(bcc));
            
            // Set Subject: header field 主题
            message.setSubject(subTitle);
