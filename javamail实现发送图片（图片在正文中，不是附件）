@@ -1,0 +1,69 @@
+public static boolean sendPicEmail(String recipientTO, String subTitle, String htmlContext, String priority, String picPath) {
+        // Recipient's email ID needs to be mentioned.
+        String to = "Recipient@mail.com,Recipient1@mail.com";//多个用户用","隔开
+
+        // Sender's email ID needs to be mentioned
+        String from = "Sender@mail.com";//发件人邮箱
+        final String username = "xxx";//用户名
+        final String password = "xxx";//密码
+        // email host
+        String host = "smtp.huawei.com";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", "25");
+
+        Session session = Session.getInstance(props,
+           new javax.mail.Authenticator() {
+              protected PasswordAuthentication getPasswordAuthentication() {
+                 return new PasswordAuthentication(username, password);
+              }
+           });
+
+        try {
+
+           // Create a default MimeMessage object.
+           Message message = new MimeMessage(session);
+
+           // Set From: header field of the header.
+           message.setFrom(new InternetAddress(from));
+
+           // Set To: header field of the header.
+           message.setRecipients(Message.RecipientType.TO,
+              InternetAddress.parse(to));
+           
+           // Set Subject: header field 主题
+           message.setSubject(subTitle);
+
+           // This mail has 2 part, the BODY and the embedded image
+           MimeMultipart multipart = new MimeMultipart("related");
+
+           // first part (the html)
+           BodyPart messageBodyPart = new MimeBodyPart();
+           String htmlText = htmlContext + "<H1>Hello</H1><img src='cid:image'>";//这里的img不能少，否则会下面的图片会成为附件
+           messageBodyPart.setContent(htmlText, "text/html");
+           // add it
+           multipart.addBodyPart(messageBodyPart);
+
+           // second part (the image)
+           messageBodyPart = new MimeBodyPart();
+           DataSource fds = new FileDataSource(picPath);//这里的path就是本地的一个地址或者说该程序运行环境的一个绝对路径
+
+           messageBodyPart.setDataHandler(new DataHandler(fds));
+           messageBodyPart.setHeader("Content-ID", "<image>");
+
+           // add image to the multipart
+           multipart.addBodyPart(messageBodyPart);
+
+           // put everything together
+           message.setContent(multipart);
+           // Send message
+           Transport.send(message);
+
+           System.out.println("Sent message successfully....");
+           return true;
+        } catch (MessagingException e) {
+           throw new RuntimeException(e);
+        }
+     }
