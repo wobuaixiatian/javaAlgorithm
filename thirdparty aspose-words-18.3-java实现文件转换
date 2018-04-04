@@ -1,0 +1,24 @@
+Document doc = new Document("C:\\Temp\\in.html");
+
+ImageSaveOptions options = new ImageSaveOptions(SaveFormat.PNG);
+options.setPageCount(1);
+
+// Save each page of the document as Png.
+for (int i = 0; i < doc.getPageCount(); i++)
+{
+	options.setPageIndex(i);
+	doc.save("C:\\Temp\\out_" + i + ".png", options);
+}
+jar包是需要单独下载的
+Document doc = new Document("C:\\Temp\\in.html");
+
+ImageSaveOptions options = new ImageSaveOptions(SaveFormat.PNG);
+options.setPageCount(1);
+
+// Save each page of the document as Png.
+for (int i = 0; i < doc.getPageCount(); i++)
+{
+	options.setPageIndex(i);
+	doc.save("C:\\Temp\\out_" + i + ".png", options);
+}
+基本的转换ok，但是效果不是特别好。
