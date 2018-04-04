@@ -1,4 +1,5 @@
-java实现将svg转化为png图片，但是对svg中包含foreignObject的会失败。只能将标准的svg转换。
+本文分两部分，一部分是将标准的svg转换成图片，第二部分时将包含foreignObject的转换成图片，是自己对网站资料的一个整合和总结
+第一部分，java实现将svg转化为png图片，但是对svg中包含foreignObject的会失败。只能将标准的svg转换。
 这里使用的jar是batik，将下面的代码拷贝到maven的pom.xml中即可。
 <dependency>
   <groupId>org.apache.xmlgraphics</groupId>
@@ -12,7 +13,15 @@ java实现将svg转化为png图片，但是对svg中包含foreignObject的会失
 </dependency>
 关键代码
 String strImg = "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><circle cx='100' cy='50' r='40' stroke='black' stroke-width='2' fill='red'/></svg>";
-
+        try {
+            convertToPng(strImg, "D:/demoPic.png");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (TranscoderException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     /**
      * 将svg字符串转换为png
      *
@@ -78,5 +87,103 @@ public static void convertToPng(String svgCode, String pngFilePath) throws IOExc
                     e.printStackTrace();
                 }
             }
+        }
+    }   
+
+第二部分：将包含html的svg转换成图片
+这个需要前台配合
+前端代码：
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery/1.9.0/jquery.js"></script>
+</head>
+<body>
+<h2>Input Div:</h2>
+<div id="div">
+<p>I have a <span style='color:white; text-shadow:0 0 2px blue;'>dream</span></p><p><b>By Martin Luther King, Jr.</b></p>
+</div>
+<button id="click">upload</button>
+<script>
+    //1.将div转成svg
+    var divContent = document.getElementById("div").innerHTML;
+    var data = "data:image/svg+xml," +
+    "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>" +
+    "<foreignObject width='100%' height='100%'>" +
+    "<div xmlns='http://www.w3.org/1999/xhtml' style='font-size:16px;font-family:Helvetica'>" +
+    divContent +
+    "</div>" +
+    "</foreignObject>" +
+    "</svg>";
+    var img = new Image();
+    img.src = data;
+    document.getElementsByTagName('body')[0].appendChild(img);
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    var context = canvas.getContext('2d');
+    context.drawImage(img, 0, 0);
+    
+    var type = 'png';
+    var imgData = canvas.toDataURL(type);
+$(function() {
+    $("#click").click(function() {
+        $.ajax({
+            url:"/xx",
+            type:'POST',
+            data:{
+                svgStr : imgData//这里传递的是base64编码，传到后台后解析
+            },
+            success:function(d) {
+                console.log(d);
+            } 
+        });
+    });
+});
+
+</script>
+</body></html>
+
+后台处理的关键代码
+
+main(String[] args){
+        //这里的数据是由上面的imgData传递过来的，这里只做演示demo，没有使用正确的接口接受
+        String svg = "data:image/png;base64,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";
+        String[] strs = svg.split(",");
+        String svgStr = "";
+        if (strs != null) {
+            svgStr = strs[1];
+        }
+        String picPath = "D:/email1.png";
+        SVGUtil.base64ToImage(svgStr, picPath);
+}
+
+/**
+     * @param base64 图片Base64数据
+     * @param path 图片路径
+     * @return
+     */
+    public static boolean base64ToImage(String base64Str, String picPath) {// 对字节数组字符串进行Base64解码并生成图片
+        if (base64 == null){ // 数据为空
+            return false;
+        }
+        BASE64Decoder decoder = new BASE64Decoder();
+        try {
+            // Base64解码
+            byte[] bytes = decoder.decodeBuffer(base64Str);
+            for (int i = 0; i < bytes.length; ++i) {
+                if (bytes[i] < 0) {// 调整异常数据
+                    bytes[i] += 256;
+                }
+            }
+            // 生成图片
+            OutputStream out = new FileOutputStream(picPath);
+            out.write(bytes);
+            out.flush();
+            out.close();
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
