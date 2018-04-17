@@ -1,0 +1,28 @@
+    public static final String generateLog(String entity, Object a, Object b) {
+        if (a == null || a.toString() == null || a.toString().trim().equals("")) {
+            if (b == null || b.toString() == null || b.toString().trim().equals("")) {
+                return ""; // null -> null
+            } else {
+                return "添加[" + entity + "]:" + format(b) + "\n"; // null -> b
+            }
+        } else /* a != null */ {
+            if (b == null || b.toString() == null || b.toString().trim().equals("")) {
+                return "删除[" + entity + "]:" + format(a) + "\n"; // a -> null
+            } else if (format(a).equals(format(b))) {
+                return ""; // not change
+            } else {
+                return "修改[" + entity + "]:" + format(a) + " to " + format(b) + "\n"; // a -> b
+            }
+        }
+
+    }
+    
+    private static final String format(Object o) {
+        if (o instanceof java.lang.String) {
+            return o.toString();
+        } else if (o instanceof java.util.Date) {
+            return DateUtils.parse((java.util.Date) o, "yyyy-MM-dd HH:mm:ss");
+        } else {
+            return o.toString();
+        }
+    }
