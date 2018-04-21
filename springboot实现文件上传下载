@@ -1,0 +1,163 @@
+上传代码
+一般默认上传大小为30M，如果需要更大，要自己配置。
+application.yml(之前说过，冒号后面要空一格，然后再写值)
+spring:
+  http:
+    multipart:
+      enabled: true
+      max-file-size: 100Mb
+      max-request-size: 100Mb
+前台html
+<form id="importDataForm" enctype="multipart/form-data"><input name="file" type="file" /></form>
+js
+var formData = new FormData($("#importDataForm")[0]);
+$.ajax({
+    type: "POST",
+    url: "xx/importData",
+    data: formData, 
+    contentType: false, 
+    processData: false,
+    success: function (data) {
+        $("#retestAttachment").val(data.msg);
+        layer.msg("上传成功!", {
+            skin:'layer-bg-1',
+            time:2000,
+            icon:1
+        });
+    },
+    error: function(data) {
+        layer.msg('error!', {
+            skin:'layer-bg-4',
+            time:2000,
+            icon:4
+        });
+    }
+});
+后台controller
+    /**
+     * 上传数据
+     * @param file
+     * @return
+     */
+    public @PostMapping("importData") ReturnContent importData(@RequestParam(value = "file", required = false) MultipartFile file, HttpServletRequest request) {
+        return reTestCaseService.uploadFile(file, request);
+    }
+ 后台service
+ /**
+     * 上传文件
+     * @param file
+     * @param request
+     * @return
+     */
+    public ReturnContent uploadFile(MultipartFile file, HttpServletRequest request) {
+        // 获得原始文件名
+        String fileName = file.getOriginalFilename();
+        
+        System.out.println("原始文件名:" + fileName);
+
+        // 新文件名
+        String newFileName = fileName;
+
+        // 获得项目的路径
+        ServletContext sc = request.getSession().getServletContext();
+        // 上传位置
+        String path = sc.getRealPath("/img/") + DateUtils.getCurrtTime(1) + File.separator; // 设定文件保存的目录
+
+        File f = new File(path);
+        if (!f.exists())
+            f.mkdirs();
+        if (!file.isEmpty()) {
+            try {
+                FileOutputStream fos = new FileOutputStream(path + newFileName);
+                InputStream in = file.getInputStream();
+                int b = 0;
+                while ((b = in.read()) != -1) {
+                    fos.write(b);
+                }
+                fos.close();
+                in.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ReturnContent(1, "上传失败");
+            }
+        }
+
+        System.out.println("上传图片到:" + path + newFileName);
+        return new ReturnContent(0, path + newFileName);
+    }
+下载代码：
+<a href='javascript:void(0)' onclick='downloadFile("+ full.id +")' style='color:blue'>"+ fileName +"</a>
+
+/**
+ * 下载方法
+ * @returns
+ */
+function downloadFile(id) {
+    var form=$("<form>");//定义一个form表单
+    form.attr("style","display:none");
+    form.attr("target","");
+    form.attr("method","post");
+    form.attr("action","retestManage/downloadData");
+    
+    var input2=$("<input>");
+    input2.attr("type","hidden");
+    input2.attr("name","reTestCaseId");
+    input2.attr("value", id);
+    form.append(input2);
+    $(document.body).append(form);----这里一定要加，不然可能会出现下载不了的问题
+
+    form.submit();//表单提交
+    
+    后台java代码
+    /**
+     * 下载数据
+     * @param file
+     * @return
+     */
+    public @PostMapping("downloadData") ReturnContent downloadData(Integer reTestCaseId, HttpServletResponse response) {
+        ReTestCase reTestCase = new ReTestCase();
+        reTestCase.setId(reTestCaseId);
+        return reTestCaseService.downlodaFile(reTestCase, response);
+    }
+    service：
+    public ReturnContent downlodaFile(ReTestCase reTestCase, HttpServletResponse response) {
+        Integer id = reTestCase.getId();
+        reTestCase = reTestCaseMapper.getReTestCaseById(id);
+        // 得到要下载的文件名
+        String fileName = reTestCase.getRetestAttachment();
+        try {
+            // 得到要下载的文件
+            File file = new File(fileName);
+            
+            // 如果文件不存在
+            if (!file.exists()) {
+                return new ReturnContent(1, "下载的文件不存在");
+            }
+            // 处理文件名
+            String realname = file.getName();//;
+            // 设置响应头，控制浏览器下载该文件
+            response.setHeader("Content-disposition", "attachment;filename="
+                    + URLEncoder.encode(realname, "UTF-8"));
+            // 读取要下载的文件，保存到文件输入流
+            FileInputStream in = new FileInputStream(fileName);
+            // 创建输出流
+            OutputStream out = response.getOutputStream();
+            // 创建缓冲区
+            byte buffer[] = new byte[1024];
+            int len = 0;
+            // 循环将输入流中的内容读取到缓冲区当中
+            while ((len = in.read(buffer)) > 0) {
+                // 输出缓冲区的内容到浏览器，实现文件下载
+                out.write(buffer, 0, len);
+            }
+            // 关闭文件输入流
+            in.close();
+            // 关闭输出流
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ReturnContent(1, "下载文件报错！");
+        }
+        return new ReturnContent(0, "下载成功！");
+    }
+}
