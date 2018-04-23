@@ -79,3 +79,26 @@ public static boolean sendPicEmail(String recipientTO, String subTitle, String h
            throw new RuntimeException(e);
         }
      }
+--------------更新----------------
+使用过程中发现，截图的清晰度降低，截图后的图片经过上面的过程，变得模糊了。
+我们使用的是outlook，发现截图ok。但是使用邮件发送出去后就有问题。判断时outlook加载时对图片进行了压缩。
+目前没有办法解决这个。只能在邮件里面添加附件（附件是可以的）。
+下面是附件部分的参考代码
+            Multipart multipart = new MimeMultipart();   
+            //邮件正文  
+            BodyPart contentPart = new MimeBodyPart();  
+            contentPart.setContent(mail.getContent(), "text/html;charset=utf-8");  
+            multipart.addBodyPart(contentPart);  
+            //邮件附件  
+            if(attachments != null) {  
+                for(File attachment : attachments) {  
+                    BodyPart attachmentPart = new MimeBodyPart();  
+                    DataSource source = new FileDataSource(attachment);  
+                    attachmentPart.setDataHandler(new DataHandler(source));  
+                    //避免中文乱码的处理  
+                    attachmentPart.setFileName(MimeUtility.encodeWord(attachment.getName()));  
+                    multipart.addBodyPart(attachmentPart);  
+                }  
+            }  
+            message.setContent(multipart);  
+            //保存邮件  
