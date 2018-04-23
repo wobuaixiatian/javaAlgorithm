@@ -49,7 +49,7 @@ public static boolean sendPicEmail(String recipientTO, String subTitle, String h
            message.setSubject(subTitle);
 
            // This mail has 2 part, the BODY and the embedded image
-           MimeMultipart multipart = new MimeMultipart("related");
+           MimeMultipart multipart = new MimeMultipart("related");//这里是设置嵌入图片，关键部分
 
            // first part (the html)
            BodyPart messageBodyPart = new MimeBodyPart();
@@ -84,7 +84,7 @@ public static boolean sendPicEmail(String recipientTO, String subTitle, String h
 我们使用的是outlook，发现截图ok。但是使用邮件发送出去后就有问题。判断时outlook加载时对图片进行了压缩。
 目前没有办法解决这个。只能在邮件里面添加附件（附件是可以的）。
 下面是附件部分的参考代码
-            Multipart multipart = new MimeMultipart();   
+            Multipart multipart = new MimeMultipart();  //这里没有。因为是附件
             //邮件正文  
             BodyPart contentPart = new MimeBodyPart();  
             contentPart.setContent(mail.getContent(), "text/html;charset=utf-8");  
