@@ -102,3 +102,8 @@ public static boolean sendPicEmail(String recipientTO, String subTitle, String h
             }  
             message.setContent(multipart);  
             //保存邮件  
+---------更新---------------
+后面需要优化的时候，查找资料发现是因为outlook对单个图片的像素有限制，知道原因后就好解决了。
+前面实现截图的时候每次截图三分之一。然后在发送的时候在组合在一起。
+效果能够满足要求。
+代码就是前面部分的逻辑修改。这里不做展示了
