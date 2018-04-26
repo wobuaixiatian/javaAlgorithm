@@ -1,0 +1,17 @@
+默认情况下是不能够传递list集合
+通过查询资料发现有两种方式
+1，对于基本类型的集合，如ids等Integer，或者names等String。
+前台通过声明var arr = [];arr.toString();将数组变为字符串，然后通过参数传递到后台。
+2，这种方式需要在后台声明实体类。
+如果希望传递一个对象A的list到后台。这个比较麻烦
+首先你需要在后台生成一个包含A所有字段的对象。
+Class A {
+  ...
+}
+
+然后在controller层。也就是接受参数的控制层
+static class ADTOList extends ArrayList<ADTO>{};
+然后在参数列表中使用@RequestBody来接受。如下
+@RequestBody ADTOList dtoObject, 
+
+两种方式都能够满足各自的要求。按需调整。欢迎大家指教更多的方法。
