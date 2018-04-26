@@ -1,0 +1,44 @@
+1，返回Thymeleaf模板
+  maven参数
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+
+application.properties添加如下配置：（这个不配置也可以的，如果不配置，会到resources/templates下去找同名的模板或者页面）
+# 定位模板的目录
+spring.mvc.view.prefix=classpath:/templates/
+# 给返回的页面添加后缀名
+spring.mvc.view.suffix=.html
+
+这里就设计到一个传值到模板页面，ModelMap map这个是关键。以键值对的形式将值放入。在模板中可以直接使用。
+	@RequestMapping("index")
+	public String index(ModelMap map){
+		logger.info("这里是controller");
+    .....
+		map.put("title", "hello world ," + userLog.getUserName() + " : " + userLog.getUserIp());
+		map.put("userList", users);
+		for (User user : users) {
+		    nameMaps.put(user.getId() + "", user.getName());
+		}
+		map.put("userMap", nameMaps);
+		return "index"; // 注意，不要在最前面加上/，linux下面会出错
+	}
+  模板使用demo
+  		<h1 id="title">${title}</h1>
+  模板中的各类语法自己搜索，这里不做介绍
+  
+  注意，spring boot默认开启了静态文件的配置，任何放在static文件夹下的资源都是静态文件。引用静态文件时以/或者前缀不加任何定位符，都会去static文件夹下查找。
+  
+  2，实际项目中，现在没有使用模板了。都是使用的静态界面html
+  和模板差不多
+  # 定位页面的目录到static/下
+spring.mvc.view.prefix=/
+spring.mvc.view.suffix=.html
+controller当然也是需要的，和之前一样：
+
+    @GetMapping("/index")
+    public String index(){
+        return "home"; //当浏览器输入/index时，会返回 /static/home.html的页面
+    }
+目前做的项目中很少有后台进行页面跳转控制的。大多是前端路由如AngularJS等都提供了很好的支持。
