@@ -1,0 +1,434 @@
+log4j.rootLogger=debug,console,dailyFile,
+log4j.additivity.org.apache=true
+# \u63a7\u5236\u53f0(console)
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.Threshold=DEBUG
+log4j.appender.console.ImmediateFlush=true
+log4j.appender.console.Target=System.err
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=[%-5p] %d <%t> %l: %m %x %n
+
+# \u65e5\u5fd7\u6587\u4ef6(logFile)
+log4j.appender.logFile=org.apache.log4j.FileAppender
+log4j.appender.logFile.Threshold=DEBUG
+log4j.appender.logFile.ImmediateFlush=true
+log4j.appender.logFile.Append=true
+log4j.appender.logFile.File=log.log4j
+log4j.appender.logFile.layout=org.apache.log4j.PatternLayout
+log4j.appender.logFile.layout.ConversionPattern=[%-5p] %d(%r) --> [%t] %l: %m %x %n
+# \u56de\u6eda\u6587\u4ef6(rollingFile)
+log4j.appender.rollingFile=org.apache.log4j.RollingFileAppender
+log4j.appender.rollingFile.Threshold=DEBUG
+log4j.appender.rollingFile.ImmediateFlush=true
+log4j.appender.rollingFile.Append=true
+log4j.appender.rollingFile.File=log.log4j
+log4j.appender.rollingFile.MaxFileSize=200KB
+log4j.appender.rollingFile.MaxBackupIndex=50
+log4j.appender.rollingFile.layout=org.apache.log4j.PatternLayout
+log4j.appender.rollingFile.layout.ConversionPattern=[%-5p] %d(%r) --> [%t] %l: %m %x %n
+# \u5b9a\u671f\u56de\u6eda\u65e5\u5fd7\u6587\u4ef6(dailyFile)
+log4j.appender.dailyFile=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.dailyFile.Threshold=DEBUG
+log4j.appender.dailyFile.ImmediateFlush=true
+log4j.appender.dailyFile.Append=true
+log4j.appender.dailyFile.File=sync.log
+log4j.appender.dailyFile.DatePattern='.'yyyy-MM-dd
+log4j.appender.dailyFile.layout=org.apache.log4j.PatternLayout
+log4j.appender.dailyFile.layout.ConversionPattern=[%-5p] %d <%t> %l: %m %x %n
+
+pom文件样例
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.xxx.ccm</groupId>
+	<artifactId>sync</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>sync</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.6.3</version>
+		</dependency>
+<!-- 		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>org.json</artifactId>
+			<version>2.0</version>
+		</dependency> -->
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>3.6.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>org.samba.jcifs</groupId>
+			<artifactId>jcifs</artifactId>
+			<version>1.3.3</version>
+		</dependency>
+<!-- 		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.53</version>
+		</dependency> -->
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.collections</groupId>
+			<artifactId>google-collections</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant</artifactId>
+			<version>1.8.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.ant</groupId>
+					<artifactId>ant-launcher</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.7</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.xxx.ccm.sync.main.SyncTrigger</mainClass>
+							<classpathPrefix>lib/</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<configuration>
+					<outputDirectory>target/lib</outputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.xxx.ccm.sync.main.SyncTrigger</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<finalName>SyncManager</finalName>
+	</build>
+</project>
+
+
+读取prop文件的样例
+package com.xxx.ccm.sync.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.Properties;
+import java.util.Set;
+
+public class PropertiesUtil {
+    private static Properties props;
+    static {
+        props = new Properties();
+        try {
+            PropertiesUtil util = new PropertiesUtil();
+            props = util.getPropertiesFromClasspath("config.properties", props);
+            /* 加入能力: config.properties配置文件将加载jar中的和与jar同级目录下的
+             * 优点: 如果修改rabbitMQ_ip, 可以直接不用重新编辑jar
+             */
+            File propFile = new File(getPath(), "config.properties");
+            if (propFile.exists()) {
+                props = util.getPropertiesFromFile(propFile.getAbsolutePath(), props);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private PropertiesUtil() {
+    }
+
+    public static String getProperty(String key) {
+        return props.getProperty(key);
+    }
+
+    public static String getProperty(String key, String defaultStr) {
+        return props.getProperty(key, defaultStr);
+    }
+
+    public static Set<Object> getkeys() {
+        return props.keySet();
+    }
+
+    public static Properties getProperties() {
+        return props;
+    }
+
+    /**
+     * * loads properties file from classpath
+     *
+     * @param propFileName
+     * @return * @throws IOException
+     */
+    private Properties getPropertiesFromClasspath(String propFileName, Properties props)
+            throws IOException {
+        // Properties props = new Properties();
+        InputStream inputStream = null;
+        try {
+            inputStream = this.getClass().getClassLoader().getResourceAsStream(propFileName);
+            if (inputStream == null) {
+                throw new FileNotFoundException(
+                        "property file '" + propFileName + "' not found in the classpath");
+            }
+            props.load(inputStream);
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+        return props;
+    }
+
+    private Properties getPropertiesFromFile(String filePath, Properties props) throws IOException {
+        // Properties props = new Properties();
+        InputStream inputStream = null;
+
+        try {
+            inputStream = new FileInputStream(filePath);
+            props.load(inputStream);
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+        return props;
+    }
+    
+    /**
+     * 获得当前可执行jar或者class所在的工作目录的绝对路径
+     * @return
+     */
+    public static String getPath() {
+        URL url = PropertiesUtil.class.getProtectionDomain().getCodeSource().getLocation();
+        String filePath = null;
+        try {
+            filePath = URLDecoder.decode(url.getPath(), "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            filePath = url.getPath();
+        }
+
+        File file = new File(filePath);
+        if (file.isFile()) {
+            return file.getParentFile().getAbsolutePath();
+        }
+        return file.getAbsolutePath();
+    }
+
+}
+运行shell的样例
+package com.xxx.ccm.sync.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+
+public class Shell {
+//    public static final boolean IS_LINUX = ('/' == File.separatorChar);
+    private static final String[] SHELL_EXECUOTR = new String[2];
+    static {
+        if (SystemUtils.IS_OS_UNIX) {
+            SHELL_EXECUOTR[0] = "bash";
+            SHELL_EXECUOTR[1] = "-c";
+        } else {
+            SHELL_EXECUOTR[0] = "cmd.exe";
+            SHELL_EXECUOTR[1] = "/c";
+        }
+    }
+
+    /**
+     * 此方法会阻塞住线程
+     * @param cmd
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static final CmdResult exec(String... commands) throws IOException, InterruptedException {
+        ProcessBuilder builder = new ProcessBuilder();
+        String cmd = null;
+        if (SystemUtils.IS_OS_UNIX) {
+            cmd = StringUtils.join(commands, " \n ");
+        } else {
+            cmd = StringUtils.join(commands, " && ");
+        }
+        
+        Process process = builder.command(SHELL_EXECUOTR[0], SHELL_EXECUOTR[1], cmd).start();
+        CmdResult result = new CmdResult();
+        result.r1closed = false;
+        result.r2closed = false;
+        //正常日志信息
+        InputStream is = process.getInputStream();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    result.r1 = IOUtils.toString(is, "utf-8");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    synchronized (result) {
+                        result.r1closed = true;
+                        result.notifyAll();
+                    }
+                }
+            }
+        }).start();
+        //错误日志信息
+        InputStream es = process.getErrorStream();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    result.r2 = IOUtils.toString(es, "utf-8");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    synchronized (result) {
+                        result.r2closed = true;
+                        result.notifyAll();
+                    }
+                }
+            }
+        }).start();
+        //执行结果this method will hang up the process
+        result.errorlevel = process.waitFor();
+        while (true) {
+            synchronized (result) {
+                if (result.r1closed && result.r2closed) {
+                    break;
+                } else {
+                    try {
+                        result.wait(200);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static final class CmdResult {
+        public static final int ERROR_LEVEL_SUCCESS = 0;
+        public int errorlevel; //success if 0
+        public String r1; // common message
+        public boolean r1closed;
+        public String r2; // error message
+        public boolean r2closed;
+        @Override
+        public String toString() {
+            if (errorlevel == 0)
+                return r1;
+            else
+                return r1 + System.getProperty("line.separator") + r2;
+        }
+    }
+
+}
