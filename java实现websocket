@@ -1,0 +1,93 @@
+下文的简洁代码即建立了一个 WebSocket 的服务端，@ServerEndpoint("/echo") 的 annotation 
+注释端点表示将 WebSocket 服务端运行在 ws://[Server 端 IP 或域名]:[Server 端口]/websockets/echo 的访问端点，
+客户端浏览器已经可以对 WebSocket 客户端 API 发起 HTTP 长连接了。使用 ServerEndpoint 注释的类必须有一个公共的无参数构造函数，
+@onMessage 注解的 Java 方法用于接收传入的 WebSocket 信息，这个信息可以是文本格式，也可以是二进制格式。
+OnOpen 在这个端点一个新的连接建立时被调用。参数提供了连接的另一端的更多细节。Session 表明两个 WebSocket 端点对话连接的另一端，可以理解为类似 HTTPSession 的概念。
+OnClose 在连接被终止时调用。参数 closeReason 可封装更多细节，如为什么一个 WebSocket 连接关闭。
+更高级的定制如 @Message 注释，MaxMessageSize 属性可以被用来定义消息字节最大限制，在示例程序中，如果超过 6 个字节的信息被接收，就报告错误和连接关闭。
+服务端代码：
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+@ServerEndpoint("/echo")
+public class WebSocketHandle {
+	
+	private Process process;
+	private InputStream inputStream;
+	
+	/**
+	 * 新的WebSocket请求开启
+	 */
+	@OnOpen
+	public void onOpen(Session session) {
+		try {
+			// 执行tail -f命令
+			process = Runtime.getRuntime().exec("tail -f /var/log/syslog");
+			inputStream = process.getInputStream();
+			
+			// 一定要启动新的线程，防止InputStream阻塞处理WebSocket的线程
+			TailLogThread thread = new TailLogThread(inputStream, session);
+			thread.start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * WebSocket请求关闭
+	 */
+	@OnClose
+	public void onClose() {
+		try {
+			if(inputStream != null)
+				inputStream.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if(process != null)
+			process.destroy();
+	}
+	
+	@OnError
+	public void onError(Throwable thr) {
+		thr.printStackTrace();
+	}
+}
+
+当 Browser 和 WebSocketServer 连接成功后，会触发 onopen 消息；如果连接失败，发送、接收数据失败或者处理数据出现错误，
+browser 会触发 onerror 消息；当 Browser 接收到 WebSocketServer 发送过来的数据时，就会触发 onmessage 消息，参数 evt 
+中包含 Server 传输过来的数据；当 Browser 接收到 WebSocketServer 端发送的关闭连接请求时，就会触发 onclose 消息。
+我们可以看出所有的操作都是采用异步回调的方式触发，这样不会阻塞 UI，可以获得更快的响应时间，更好的用户体验
+web端代码：
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>tail log</title>
+</head>
+<body>
+	<div id="log-container" style="height: 450px; overflow-y: scroll; background: #aaa; color: #aaa; padding: 10px;">
+		<div>
+		</div>
+	</div>
+    <script type="text/jscript" src="./jquery-3.3.1.min.js"></script>
+<script>
+	$(document).ready(function() {
+		// 指定websocket路径
+		var websocket = new WebSocket('ws://localhost:8080/echo');
+		websocket.onmessage = function(event) {
+			// 接收服务端的实时日志并添加到HTML页面中
+			$("#log-container div").append(event.data);
+			// 滚动条滚动到最低部
+			$("#log-container").scrollTop($("#log-container div").height() - $("#log-container").height());
+		};
+	});
+</script>
+</body>
+</html>
