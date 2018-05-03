@@ -5,6 +5,11 @@
 OnOpen 在这个端点一个新的连接建立时被调用。参数提供了连接的另一端的更多细节。Session 表明两个 WebSocket 端点对话连接的另一端，可以理解为类似 HTTPSession 的概念。
 OnClose 在连接被终止时调用。参数 closeReason 可封装更多细节，如为什么一个 WebSocket 连接关闭。
 更高级的定制如 @Message 注释，MaxMessageSize 属性可以被用来定义消息字节最大限制，在示例程序中，如果超过 6 个字节的信息被接收，就报告错误和连接关闭。
+maven配置：
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-websocket</artifactId>
+</dependency>
 服务端代码：
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +20,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint("/echo")
+@ServerEndpoint("/echo")//这里的注解在springboot中需要声明一个config类
 public class WebSocketHandle {
 	
 	private Process process;
@@ -59,7 +64,47 @@ public class WebSocketHandle {
 		thr.printStackTrace();
 	}
 }
+config类：
+@Configuration
+public class WebSocketConfig {
 
+    @Bean
+    public ServerEndpointExporter serverEndpointExporter(){
+        return new ServerEndpointExporter();
+    }
+}
+处理消息的线程：
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import javax.websocket.Session;
+
+public class TailLogThread extends Thread {
+	
+	private BufferedReader reader;
+	private Session session;
+	
+	public TailLogThread(InputStream in, Session session) {
+		this.reader = new BufferedReader(new InputStreamReader(in));
+		this.session = session;
+		
+	}
+	
+	@Override
+	public void run() {
+		String line;
+		try {
+			while((line = reader.readLine()) != null) {
+				// 将实时日志通过WebSocket发送给客户端，给每一行添加一个HTML换行
+				session.getBasicRemote().sendText(line + "<br>");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}
 当 Browser 和 WebSocketServer 连接成功后，会触发 onopen 消息；如果连接失败，发送、接收数据失败或者处理数据出现错误，
 browser 会触发 onerror 消息；当 Browser 接收到 WebSocketServer 发送过来的数据时，就会触发 onmessage 消息，参数 evt 
 中包含 Server 传输过来的数据；当 Browser 接收到 WebSocketServer 端发送的关闭连接请求时，就会触发 onclose 消息。
