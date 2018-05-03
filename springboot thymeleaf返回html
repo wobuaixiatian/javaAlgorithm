@@ -1,0 +1,37 @@
+1，maven配置
+<dependency>
+   <groupId>org.springframework.boot</groupId>
+   <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+2，application.yml配置
+spring
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    content-type: text/html
+    mode: HTML5
+ 3，页面
+ <!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+</head>
+<body>
+	<p>Hello!<span th:text="${user}"></span>!<br />welcom to Thymeleaf's world</p>
+</body>
+</html>
+4，后台
+public @Controller @RequestMapping("/") class WebController {//这里很关键一点事不能使用@RestController，必须使用@Controller
+    
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
+    
+    @RequestMapping("/index")
+    public String index(ModelMap map){
+        logger.info("这里是controller");
+        map.put("user", "Tyrone");
+        return "index"; // 注意，不要在最前面加上/，linux下面会出错
+    }
+}
