@@ -1,8 +1,14 @@
 1，返回Thymeleaf模板
   maven参数
-  <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+<parent>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-parent</artifactId>
+	<version>1.4.0.RELEASE</version>
+	<relativePath/> <!-- lookup parent from repository -->
+</parent>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-freemarker</artifactId>
 </dependency>
 
 application.properties添加如下配置：（这个不配置也可以的，如果不配置，会到resources/templates下去找同名的模板或者页面）
@@ -36,9 +42,14 @@ spring.mvc.view.suffix=.html
 spring.mvc.view.prefix=/
 spring.mvc.view.suffix=.html
 controller当然也是需要的，和之前一样：
+@Controller//这里只能用这个，不能用@RestController
+@RequestMapping("/web")
+public class WebController{
 
     @GetMapping("/index")
     public String index(){
         return "home"; //当浏览器输入/index时，会返回 /static/home.html的页面
     }
+   }
+   这种模式下，第一种方法也仍然生效，会去resources/templates查找同名模板名称
 目前做的项目中很少有后台进行页面跳转控制的。大多是前端路由如AngularJS等都提供了很好的支持。
