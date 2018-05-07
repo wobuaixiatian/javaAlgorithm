@@ -1,0 +1,16 @@
+java程序：
+Process process = Runtime.getRuntime().exec("commond");
+process.waitFor();
+
+在windows或者linux平台上面程序执行完毕后往往不会自动关闭。从而导致java程序阻塞在waitFor()
+导致这个问题的原因是，该可执行程序标准输出比较多，而运行窗口的标准输出缓冲区不够大，解决办法是，利用java提供process类提供的方法，让java虚拟机截获被调用
+程序的运行窗口标准输出。在waitFor()前，读出标准输出缓冲区中的内容，如下：
+BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+String swap = null;
+
+while ((swap = reader.readLine()) != null) {
+    logger.info(swap);
+}
+
+p.waitFor();
