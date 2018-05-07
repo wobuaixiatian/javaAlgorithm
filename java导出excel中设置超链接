@@ -1,0 +1,9 @@
+HSSFWorkbook：这个类包含了读取或写入.xls格式文件的方法。能处理的版本包括 97-2003.
+XSSFWorkbook：这个类包含了读取或写入.xlsx或.xls文件格式的方法，能够处理2007及以后版本的文档。
+
+XSSFCell cell = row.createCell(0);
+cell.setCellFormula("HYPERLINK(\"" + codeLink + "\",\""+ code +"\")");
+
+HSSFCell cell = row.createCell(0);
+cell.setCellType(HSSFCell.CELL_TYPE_FORMULA);//CELL_TYPE_FORMULA
+cell.setCellFormula("HYPERLINK(\"" + link + "\",\""+ cellValue +"\")");
