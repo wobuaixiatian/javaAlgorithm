@@ -1,0 +1,35 @@
+1,代码如下：
+配置文件：application.yml
+server:
+  port: 8080
+  context-path: /Demo
+java代码：
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix="server")
+public class ServerDemo {
+
+    private String port;
+    private String contextPath;
+    public String getPort() {
+        return port;
+    }
+    public void setPort(String port) {
+        this.port = port;
+    }
+    public String getContextPath() {
+        return contextPath;
+    }
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+}
+
+ 在要使用的类中使用
+     @Autowired
+    private ServerDemo server;
+ 然后可以获取到值了。
+ 2，这里主要说明一下出现了特殊符号“-”，使用下划线不能解决问题，
+ 测试发现使用驼峰命名法就是获取。
