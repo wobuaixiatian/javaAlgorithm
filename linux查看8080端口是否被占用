@@ -1,0 +1,3 @@
+1，ps -ef | grep tomcat，没有发现端口8080的tomcat进程
+2，netstat –apn | grep 8080, 查看端口8080被那个进程占用
+3，kill -9 进程。杀掉这个进程，当然得先判断是否可以杀掉
