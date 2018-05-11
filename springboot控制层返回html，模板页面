@@ -1,4 +1,4 @@
-1，返回Thymeleaf模板
+1，返回Thymeleaf模板,
   maven参数
 <parent>
 	<groupId>org.springframework.boot</groupId>
@@ -51,5 +51,5 @@ public class WebController{
         return "home"; //当浏览器输入/index时，会返回 /static/home.html的页面
     }
    }
-   这种模式下，第一种方法也仍然生效，会去resources/templates查找同名模板名称
+   这种模式下，第一种方法也仍然生效，会去resources/templates查找同名模板名称，这里一定要把模板放在templates下
 目前做的项目中很少有后台进行页面跳转控制的。大多是前端路由如AngularJS等都提供了很好的支持。
