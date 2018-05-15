@@ -1,0 +1,16 @@
+springboot中新增的这个功能我个人是比较喜欢的，对会报错的问题进行集中的管理，关键是配置很简单。
+只需要在类上注解一个@ControllerAdvice。
+java代码：
+@ControllerAdvice//关键
+@ResponseBody//返回的是json字符串
+public class ExceptionHandlerDemo {
+
+    @ExceptionHandler({ Exception.class })//可以自定义类Exception，RuntimeException等，多个可以这样({ Exception.class, RuntimeException.class })
+    public String handlerEveryThing(Exception exception) {
+        String exc = exception.getMessage();
+        System.out.println("exception : " + exc);
+        return exc;
+    }
+}
+这里有一个要注意的点。自己在使用的过程这个类必须放在监控的类的同级目录下。不然没有效果，不知道是不是自己配置问题。
+欢迎拍砖
