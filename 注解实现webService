@@ -1,0 +1,108 @@
+项目中需要调用一个webservice的接口获取数据，为了更好的实现功能，自己学习了一下，先总结如下，jdk1.6及以上
+webService代码。
+这里需要定义一个接口
+import javax.jws.WebMethod;
+import javax.jws.WebService;
+//使用@WebService注解标注WebServiceI接口
+@WebService
+public interface IWebServiceTest {
+    @WebMethod
+    String sayHello(String name);
+     
+    @WebMethod
+    String save(String name,String pwd);
+}
+
+@WebService
+public class WebServiceTestImpl implements IWebServiceTest {
+
+    @Override
+    public String sayHello(String name) {
+        // TODO Auto-generated method stub
+        System.out.println("WebService sayHello "+name);
+        return "sayHello "+name;
+    }
+
+    @Override
+    public String save(String name, String pwd) {
+        // TODO Auto-generated method stub
+        System.out.println("WebService save "+name+"， "+pwd);
+        return "save Success";
+    }
+
+}
+
+下面使用Endpoint来发布服务。
+import javax.xml.ws.Endpoint;
+
+public class WebServicePublish {
+
+    public static void main(String[] args) {
+        //定义WebService的发布地址，这个地址就是提供给外界访问Webervice的URL地址，URL地址格式为：http://ip:端口号/xxxx
+        //String address = "http://127.0.0.1:8989/";这个WebService发布地址的写法是合法的
+        //String address = "http://127.0.0.1:8989/Webservice";这个WebService发布地址的是合法的
+        String address = "http://127.0.0.1:8989/hubo/Webservice";
+        //使用Endpoint类提供的publish方法发布WebService，发布时要保证使用的端口号没有被其他应用程序占用
+        Endpoint.publish(address , new WebServiceTestImpl());
+        System.out.println("发布webservice成功!");
+    }
+}
+如果是Web项目，那么可以使用ServletContextListener或者Servlet进行发布
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+import javax.xml.ws.Endpoint;
+//使用Servlet3.0提供的@WebListener注解将实现了ServletContextListener接口的WebServicePublishListener类标注为一个Listener
+@WebListener
+public class WebServicePublishListener implements ServletContextListener {
+
+    @Override
+    public void contextDestroyed(ServletContextEvent arg0) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void contextInitialized(ServletContextEvent arg0) {
+        // TODO Auto-generated method stub
+      //WebService的发布地址
+         String address = "http://127.0.0.1:8080/hubo/WebService";
+         //发布WebService，WebServiceImpl类是WebServie接口的具体实现类
+         Endpoint.publish(address , new WebServiceTestImpl());
+         System.out.println("使用WebServicePublishListener发布webservice成功!");
+    }
+
+}
+我们这里使用的是java普通项目，所以使用WebServicePublish来启动项目。启动有可以通过eclipse的webservice explorer来测试端口是否成功。
+具体可以参考https://blog.csdn.net/LoveCarpenter/article/details/53945697。这里不重复。
+
+根据启动设置，我们的服务wsdl链接。
+http://127.0.0.1:8989/hubo/Webservice?wsdl
+
+通过jdk的wsimort.exe工具生成客户端代码。
+到cmd命令框中。输入(代码会生成在当前目录下。所以这里最好先切换到已知目录下面，再执行代码)
+wsimport -keep http://127.0.0.1:8989/hubo/Webservice?wsdl
+执行命令完成后会生成一个文件夹。层级和发布服务的类似。
+关注对应的一个xxImpl和xxImplService。
+然后编写一个WSClient来测试能否获取数据。
+package com.huawei.exceptionHandler;
+
+public class WSClient {
+
+    public static void main(String[] args) {
+        //创建一个用于产生WebServiceImpl实例的工厂，WebServiceImplService类是wsimport工具生成的
+        WebServiceTestImplService factory = new WebServiceTestImplService();
+        //通过工厂生成一个WebServiceImpl实例，WebServiceImpl是wsimport工具生成的
+        WebServiceTestImpl1 wsImpl = factory.getWebServiceTestImplPort();
+        //调用WebService的sayHello方法
+        String resResult = wsImpl.sayHello("hubo");
+        System.out.println("调用WebService的sayHello方法返回的结果是："+resResult);
+        System.out.println("---------------------------------------------------");
+        //调用WebService的save方法
+        resResult = wsImpl.save("hubo","123");
+        System.out.println("调用WebService的save方法返回的结果是："+resResult);
+    }
+}
+WebServiceTestImplService和WebServiceTestImpl1是通过命令生成的。
+
+最后运行这个程序。查看结果即可。
