@@ -1,0 +1,14 @@
+现象：外部系统调用本系统接口，进行数据更新。数据发送成功，但是本系统处理数据的时候总是在固定位置卡死。
+使用vertica数据库的相关命令查看
+select * from locks;-------那些表被锁了，表中含有transaction_id
+
+select * from sessions where transaction_id in(transaction_id);--------查看指定transaction_id的session
+这里可以看到连接session的客户端的ip。
+
+根据ip查看是那个客户端发生问题。
+
+最后发现是一位同事使用客户端，执行update操作，但是没有commit，也没有取消。导致这个客户端一直持有某个表的锁。
+
+关闭该同事的客户端，解决问题。
+
+select close_session('v_com_db_node0001-343304:0xa74291');----这个方法也可以直接关闭连接的session
