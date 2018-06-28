@@ -215,6 +215,13 @@ log.retention.check.interval.ms=300000 #每隔300000毫秒去检查上面配置�
 log.cleaner.enable=false #是否启用log压缩，一般不用启用，启用的话可以提高性能
 zookeeper.connect=xx:12181,xx:12181,xx:12181#设置zookeeper的连接端口
  
+注意，这里如果希望在java中创建topic也是多个备份，需要添加一下属性
+#default replication factors for automatically created topics，默认值1
+default.replication.factor=3
+#When a producer sets acks to "all" (or "-1"), this configuration specifies the minimum number of replicas that must acknowledge a write for the write to be considered successful.
+#min.insync.replicas and acks allow you to enforce greater durability guarantees，默认值1
+min.insync.replicas=3
+ 
 上面是参数的解释，实际的修改项为：
  
 #broker.id=0  每台服务器的broker.id都不能相同
