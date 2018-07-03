@@ -1,0 +1,85 @@
+https://blog.csdn.net/lkforce/article/details/77776684
+参数详细解释
+
+
+[root@lfgpcd00007 bin]# ./kafka-topics.sh --describe --zookeeper localhost:12181 --topic test
+Topic:test      PartitionCount:1        ReplicationFactor:2     Configs:
+        Topic: test     Partition: 0    Leader: 3       Replicas: 3,2   Isr: 3,2
+[root@lfgpcd00007 bin]# ./kafka-topics.sh --describe --zookeeper localhost:12181 --topic test1
+Topic:test1     PartitionCount:1        ReplicationFactor:1     Configs:
+        Topic: test1    Partition: 0（这个是编号）    Leader: 3       Replicas: 3     Isr: 3
+
+#分区数1  复制因子数为2   test的分区为0 
+#Replicas: 1,3   复制的为1,3
+ReplicationFactor:这个很关键，如果只有一个，那么当这个机器挂掉后。就不会重新选举一个出来。所以这里的数量最好是和集群中服务器的个数相同
+
+
+第一个行显示所有partitions的一个总结，以下每一行给出一个partition中的信息，如果我们只有一个partition，则只显示一行。
+leader 是在给出的所有partitons中负责读写的节点，每个节点都有可能成为leader
+replicas 显示给定partiton所有副本所存储节点的节点列表，不管该节点是否是leader或者是否存活。
+isr 副本都已同步的的节点集合，这个集合中的所有节点都是存活状态，并且跟leader同步
+
+来自 <http://blog.51cto.com/10120275/1865479> 
+
+
+关闭kafka
+调用bin中的
+#关闭
+/bin/kafka-server-stop.sh
+
+来自 <https://www.cnblogs.com/baibaluo/p/4504700.html> 
+
+
+• kafka-server-start.sh
+	• Eg  ./kafka-server-start.sh ../config/server.properties 
+• kafka-console-consumer.sh
+• kafka-console-producer.sh
+• kafka-topics.sh
+
+来自 <https://blog.csdn.net/isea533/article/details/73720066> 
+
+
+https://www.apache.org/dyn/closer.cgi?path=/kafka/0.11.0.0/
+
+
+./bin/kafka-topics  --delete --zookeeper localhost:2181  --topic 【topic name】
+
+来自 <https://blog.csdn.net/fengzheku/article/details/50585972> 
+
+
+要使用的命令
+10.249.67.231:12181,10.250.135.181:12181,10.249.75.70:12181
+
+partitions指定topic分区数，replication-factor指定topic每个分区的副本数
+
+partitions分区数:
+partitions ：分区数，控制topic将分片成多少个log。可以显示指定，如果不指定则会使用broker(server.properties)中的num.partitions配置的数量
+虽然增加分区数可以提供kafka集群的吞吐量、但是过多的分区数或者或是单台服务器上的分区数过多，会增加不可用及延迟的风险。因为多的分区数，意味着需要打开更多的文件句柄、增加点到点的延时、增加客户端的内存消耗。
+分区数也限制了consumer的并行度，即限制了并行consumer消息的线程数不能大于分区数
+分区数也限制了producer发送消息是指定的分区。如创建topic时分区设置为1，producer发送消息时通过自定义的分区方法指定分区为2或以上的数都会出错的；这种情况可以通过alter –partitions 来增加分区数。
+
+--replication-factor  
+replication-factor副本
+replication factor 控制消息保存在几个broker(服务器)上，一般情况下等于broker的个数。
+如果没有在创建时显示指定或通过API向一个不存在的topic生产消息时会使用broker(server.properties)中的default.replication.factor配置的数量
+
+
+./kafka-topics.sh --create --zookeeper 10.249.67.231:12181,10.250.135.181:12181,10.249.75.70:12181 --replication-factor 2 --partitions 1 --topic test    ---创建topic
+
+./kafka-console-producer.sh --broker-list 10.249.67.231:9092,10.250.135.181:9092,10.249.75.70:9092 --topic test  ---创建生产者
+
+./kafka-console-consumer.sh --zookeeper 10.249.67.231:12181,10.250.135.181:12181,10.249.75.70:12181 --topic test --from-beginning   ---创建消费者
+
+./kafka-console-consumer.sh --bootstrap-server 10.249.67.231:9092,10.250.135.181:9092,10.249.75.70:9092 --topic test1 --from-beginning（ --from-beginning从字面可以知道这个会从整个消息的最开始获取，已经消费过的也会获取到。去掉就没有问题了）
+
+
+./kafka-topics.sh --list --zookeeper  10.249.67.231:12181,10.250.135.181:12181,10.249.75.70:12181   ---查看topic
+
+./kafka-topics.sh --describe --zookeeper localhost:12181 --topic test    --查看topic状态
+
+删除主题
+bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic test_topic
+	注意：需要在Broker的配置文件server.properties中配置 delete.topic.enable=true 才能删除主题。
+
+
+来自 <https://blog.csdn.net/isea533/article/details/73720066> 
